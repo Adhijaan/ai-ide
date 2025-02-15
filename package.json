@@ -1,0 +1,22 @@
+{
+  "name": "ai-code-editor",
+  "version": "1.0.0",
+  "description": "## About",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/Adhijaan/ai-ide.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Adhijaan/ai-ide/issues"
+  },
+  "homepage": "https://github.com/Adhijaan/ai-ide#readme",
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}
