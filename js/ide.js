@@ -35,6 +35,8 @@ var sourceEditor;
 var stdinEditor;
 var stdoutEditor;
 var chatEditor;
+var chatMessages;
+
 
 var $selectLanguage;
 var $compilerOptions;
@@ -632,8 +634,90 @@ $(document).ready(async function () {
     });
 
     layout.registerComponent("chat", function (container, state) {
-      const chatContainer = container.getElement();
-      chatContainer.html(`
+      chatEditor = container.getElement();
+      const chatStyles = `
+        <style>
+          .chat-interface {
+            display: flex !important;
+            flex-direction: column !important;
+            height: 100% !important;
+            background-color: #0f0f10 !important;
+            color: #fff !important;
+          }
+
+          .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+          }
+
+          .model-selector {
+            padding: 0.5rem;
+            border-bottom: 1px solid #2d2d2d;
+          }
+
+          .model-selector select {
+            background: #1b1c1d;
+            color: #fff;
+            border: 1px solidrgb(79, 78, 78);
+            padding: 0.5rem;
+            width: 100%;
+          }
+
+          .input-container {
+            display: flex;
+            padding: 1rem;
+            gap: 0.5rem;
+            border-top: 1px solid #2d2d2d;
+          }
+
+          .input-container textarea {
+            flex: 1;
+            min-height: 40px;
+            resize: none;
+            padding: 0.5rem;
+            color: #fff;
+            background-color: #1b1c1d;
+            border: 1px solid #2d2d2d;
+            border-radius: 4px;
+          }
+          .input-container textarea:focus {
+            outline: none;
+            border-color: #2185d0;
+          }
+
+          .input-container textarea.error {
+            border-color: #ff0000;
+            animation: shake 0.3s ease-in-out;
+          }
+
+          @keyframes shake {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(-3px); }
+            100% { transform: translateX(3px); }
+          }
+
+          .input-container button {
+            padding: 0.5rem 1rem;
+            background-color: #2185d0;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+          }
+
+          .input-container button:hover {
+            background-color: #1678c2;
+          }
+          @media (max-width: 80px) {
+            .input-container button {
+              display: none;
+            }
+          }
+        </style>
+      `;
+      chatEditor.html(`
+        ${chatStyles}
         <div class="chat-interface">
           <div class="model-selector">
             <select id="model-select">
@@ -642,13 +726,54 @@ $(document).ready(async function () {
               <!-- Add other models -->
             </select>
           </div>
-          <div class="messages-container"></div>
+          <div class="messages-container" id="messages-container"></div>
           <div class="input-container">
             <textarea placeholder="Ask a question..."></textarea>
             <button class="send-btn">Send</button>
           </div>
         </div>
       `);
+      
+      const $modelSelect = chatEditor.find("#model-select");
+      const $messagesContainer = chatEditor.find("#messages-container");
+      const $chatBtn = chatEditor.find(".send-btn");
+      const $inputMessageBox = chatEditor.find(".input-container textarea");
+
+      $modelSelect.on("change", function() {
+        const selectedModel = $(this).val();
+        console.log(selectedModel);
+      });
+
+      $inputMessageBox.on('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage();
+        }
+      });
+
+      $chatBtn.on("click", function() {
+        sendMessage();
+      });
+
+      function sendMessage() {
+        const message = $inputMessageBox.val().trim();
+        if (!message) {
+          $inputMessageBox.addClass("error").focus();
+          setTimeout(() => {
+            $inputMessageBox.removeClass("error");
+          }, 700);
+          return;
+        }
+        $inputMessageBox.val("");
+        console.log(message);
+        const $messageElement = $('<div>', {
+          class: 'message',
+          text: message
+        });
+        $messagesContainer.append($messageElement);
+
+      }
+
     });
 
     layout.on("initialised", function () {
@@ -728,8 +853,11 @@ $(document).ready(async function () {
   };
 });
 
-const DEFAULT_SOURCE =
-  "\
+async function sendMessage() {
+
+}
+  const DEFAULT_SOURCE =
+    "\
 #include <algorithm>\n\
 #include <cstdint>\n\
 #include <iostream>\n\
