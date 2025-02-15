@@ -714,6 +714,32 @@ $(document).ready(async function () {
               display: none;
             }
           }
+
+          .message-box {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+          }
+          .message-box.user {
+            justify-content: flex-end;
+          }
+          .message-box.assistant {
+            justify-content: flex-start;
+          }
+
+          .message {
+            border-radius: .5rem;
+            padding: .5rem;
+            margin: .25rem;
+            max-width: 75%;
+            word-wrap: break-word;
+          }
+          .message.user {
+            background-color:rgb(38, 100, 163);
+          }
+          .message.assistant {
+            background-color: #1b1c1d;
+          }
         </style>
       `;
       chatEditor.html(`
@@ -766,14 +792,28 @@ $(document).ready(async function () {
         }
         $inputMessageBox.val("");
         console.log(message);
-        const $messageElement = $('<div>', {
-          class: 'message',
+        const $userMessageBox = $('<div>', {
+          class: 'message-box user',
+        });
+        const $userMessageElement = $('<div>', {
+          class: 'message user',
           text: message
         });
-        $messagesContainer.append($messageElement);
+        // Show user message
+        $userMessageBox.append($userMessageElement);
+        $messagesContainer.append($userMessageBox);
 
+        // Show assistant message
+        const $assistantMessageBox = $('<div>', {
+          class: 'message-box assistant',
+        });
+        const $assistantMessageElement = $('<div>', {
+          class: 'message assistant',
+          text: "Hello, how can I help you today?"
+        });
+        $assistantMessageBox.append($assistantMessageElement);
+        $messagesContainer.append($assistantMessageBox);
       }
-
     });
 
     layout.on("initialised", function () {
