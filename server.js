@@ -19,36 +19,43 @@ app.listen(port, () => {
 });
 
 app.post("/api/chat", async (req, res) => {
-  console.log("Received request");
-  const message = req.body.message;
-  console.log(message);
-  const response = await getResponse(message);
-  console.log(response);
-  res.json({ response: response });
-});
+  try {
+    console.log("Received request");
+    const message = req.body.message;
+    const model = req.body.model;
 
-async function getResponse(message) {
-  OPEN_ROUTER_KEY = process.env.OPEN_ROUTER_API_KEY;
-  console.log(OPEN_ROUTER_KEY);
-  console.log(message);
-  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${OPEN_ROUTER_KEY}`,
-    },
-    body: JSON.stringify({
-      model: "google/gemini-2.0-flash-lite-preview-02-05:free",
-      messages: [
-        { role: "system", content: LLM_SYSTEM_PROMPT },
-        { role: "user", content: message },
-      ],
-    }),
-  });
-  const data = await response.json();
-  console.log(data);
-  return data.choices[0].message.content;
-}
+    OPEN_ROUTER_KEY = process.env.OPEN_ROUTER_API_KEY;
+    console.log(OPEN_ROUTER_KEY);
+    console.log(message);
+    console.log(model);
+    if (!model) {
+      throw new Error("No model provided");
+    }
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${OPEN_ROUTER_KEY}`,
+      },
+      body: JSON.stringify({
+        model: model,
+        messages: [
+          { role: "system", content: LLM_SYSTEM_PROMPT },
+          { role: "user", content: message },
+        ],
+      }),
+    });
+    const data = await response.json();
+    console.log(data);
+
+    res.json({
+      response: data.choices[0].message.content,
+    });
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
 
 const LLM_SYSTEM_PROMPT = `You are a friendly and intuitive programming assistant integrated into the IDE. Your goal is to help users debug errors, understand concepts, and improve their code. You have access to user input messages, file context, and selected lines of code. Follow these guidelines:
 
@@ -94,11 +101,11 @@ Example Interaction:
 
 User: "I’m getting an error on line 25: TypeError: Cannot read property 'length' of undefined."
 
-Copilot: "Ah, that error usually means you’re trying to access a property on something that doesn’t exist. Check line 25—what’s the value of the variable before .length? Maybe it’s not being initialized properly. You could add a console.log to see what it holds at that point."
+You: "Ah, that error usually means you’re trying to access a property on something that doesn’t exist. Check line 25—what’s the value of the variable before .length? Maybe it’s not being initialized properly. You could add a console.log to see what it holds at that point."
 
 Example Interaction:
 
 User: "What’s the difference between let and const?"
 
-Copilot: "Great question! let allows you to reassign a variable, while const means the variable can’t be reassigned after it’s set. Think of let like a whiteboard—you can erase and rewrite. const is like a permanent marker—once it’s written, it stays. Does that make sense?
+You: "Great question! let allows you to reassign a variable, while const means the variable can’t be reassigned after it’s set. Think of let like a whiteboard—you can erase and rewrite. const is like a permanent marker—once it’s written, it stays. Does that make sense?
 `;

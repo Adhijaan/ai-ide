@@ -772,9 +772,9 @@ $(document).ready(async function () {
         <div class="chat-interface">
           <div class="model-selector">
             <select id="model-select">
-              <option value="gpt-3.5">GPT-3.5</option>
-              <option value="gpt-4">GPT-4</option>
-              <!-- Add other models -->
+            ${Object.entries(LLM_TABLE)
+              .map(([model, value]) => `<option value="${value}">${model}</option>`)
+              .join("")}
             </select>
           </div>
           <div class="messages-container" id="messages-container"></div>
@@ -789,10 +789,9 @@ $(document).ready(async function () {
       const $messagesContainer = chatEditor.find("#messages-container");
       const $chatBtn = chatEditor.find(".send-btn");
       const $inputMessageBox = chatEditor.find(".input-container textarea");
-
+      let selectedModel = "deepseek/deepseek-chat:free";
       $modelSelect.on("change", function () {
-        const selectedModel = $(this).val();
-        console.log(selectedModel);
+        selectedModel = $(this).val();
       });
 
       $inputMessageBox.on("keypress", (e) => {
@@ -808,6 +807,8 @@ $(document).ready(async function () {
 
       function sendMessage() {
         const message = $inputMessageBox.val().trim();
+        const model = selectedModel;
+        console.log(model);
         if (!message) {
           $inputMessageBox.addClass("error").focus();
           setTimeout(() => {
@@ -843,13 +844,13 @@ $(document).ready(async function () {
           url: "/api/chat",
           method: "POST",
           contentType: "application/json",
-          data: JSON.stringify({ message: message }),
+          data: JSON.stringify({ message: message, model: model }),
           dataType: "json",
           success: function (response) {
             $loadingIndicator.remove();
             appendAssistantMessage(response.response);
           },
-          error: function (response) {
+          error: function () {
             $loadingIndicator.remove();
             console.error("Error fetching assistant response");
             appendAssistantMessage("There was an error fetching the assistant response.");
@@ -1137,4 +1138,15 @@ const EXTENSIONS_TABLE = {
 
 function getLanguageForExtension(extension) {
   return EXTENSIONS_TABLE[extension] || { flavor: CE, language_id: 43 }; // Plain Text (https://ce.judge0.com/languages/43)
+}
+const LLM_TABLE = {
+  "DeepSeek: DeepSeek V3": "deepseek/deepseek-chat:free",
+  "Gemini 2.0 Flash Thinking Experimental": "google/gemini-2.0-pro-exp-02-05:free",
+  "Mistral 7B": "mistralai/mistral-7b-instruct:free",
+  "Llama 3.2 11B": "meta-llama/llama-3.2-11b-vision-instruct:free",
+  "OpenChat 3.5": "openchat/openchat-7b:free",
+};
+
+function getLLMForLanguage(language) {
+  return LLM_TABLE[language] || "google/gemini-2.0-flash-lite-preview-02-05:free";
 }
