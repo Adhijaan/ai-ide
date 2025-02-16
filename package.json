@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/Adhijaan/ai-ide#readme",
   "dependencies": {
+    "dotenv": "^16.4.7",
     "express": "^4.21.2"
   }
 }

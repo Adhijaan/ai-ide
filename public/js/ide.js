@@ -37,7 +37,6 @@ var stdoutEditor;
 var chatEditor;
 var chatMessages;
 
-
 var $selectLanguage;
 var $compilerOptions;
 var $commandLineArguments;
@@ -732,6 +731,8 @@ $(document).ready(async function () {
             padding: .5rem;
             margin: .25rem;
             max-width: 75%;
+            white-space: pre-wrap; 
+            overflow-wrap: break-word; 
             word-wrap: break-word;
           }
           .message.user {
@@ -740,6 +741,30 @@ $(document).ready(async function () {
           .message.assistant {
             background-color: #1b1c1d;
           }
+          .message.loading::after {
+          content: '';
+          position: absolute;
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          animation: typing 1s linear infinite;
+          background-color: #fff;
+          left: 10px;
+          top: 50%;
+          transform: translateY(-50%);
+        }
+
+        @keyframes typing {
+          0%, 100% {
+            box-shadow: 16px 0 0 0 #ffffff33, 32px 0 0 0 #ffffff33;
+          }
+          50% {
+            box-shadow: 16px 0 0 0 #ffffff, 32px 0 0 0 #ffffff33;
+          }
+          75% {
+            box-shadow: 16px 0 0 0 #ffffff33, 32px 0 0 0 #ffffff;
+          }
+        }
         </style>
       `;
       chatEditor.html(`
@@ -759,25 +784,25 @@ $(document).ready(async function () {
           </div>
         </div>
       `);
-      
+
       const $modelSelect = chatEditor.find("#model-select");
       const $messagesContainer = chatEditor.find("#messages-container");
       const $chatBtn = chatEditor.find(".send-btn");
       const $inputMessageBox = chatEditor.find(".input-container textarea");
 
-      $modelSelect.on("change", function() {
+      $modelSelect.on("change", function () {
         const selectedModel = $(this).val();
         console.log(selectedModel);
       });
 
-      $inputMessageBox.on('keypress', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
+      $inputMessageBox.on("keypress", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
           e.preventDefault();
           sendMessage();
         }
       });
 
-      $chatBtn.on("click", function() {
+      $chatBtn.on("click", function () {
         sendMessage();
       });
 
@@ -791,27 +816,57 @@ $(document).ready(async function () {
           return;
         }
         $inputMessageBox.val("");
-        console.log(message);
-        const $userMessageBox = $('<div>', {
-          class: 'message-box user',
+        const $userMessageBox = $("<div>", {
+          class: "message-box user",
         });
-        const $userMessageElement = $('<div>', {
-          class: 'message user',
-          text: message
+        const $userMessageElement = $("<div>", {
+          class: "message user",
+          text: message,
         });
         // Show user message
         $userMessageBox.append($userMessageElement);
         $messagesContainer.append($userMessageBox);
 
-        // Show assistant message
-        const $assistantMessageBox = $('<div>', {
-          class: 'message-box assistant',
+        // Get assistant message
+        const $loadingIndicator = $("<div>", {
+          class: "message-box assistant",
+        }).append(
+          $("<div>", {
+            class: "message assistant loading",
+            text: "...",
+          })
+        );
+
+        $messagesContainer.append($loadingIndicator);
+
+        $.ajax({
+          url: "/api/chat",
+          method: "POST",
+          contentType: "application/json",
+          data: JSON.stringify({ message: message }),
+          dataType: "json",
+          success: function (response) {
+            $loadingIndicator.remove();
+            appendAssistantMessage(response.response);
+          },
+          error: function (response) {
+            $loadingIndicator.remove();
+            console.error("Error fetching assistant response");
+            appendAssistantMessage("There was an error fetching the assistant response.");
+          },
         });
-        const $assistantMessageElement = $('<div>', {
-          class: 'message assistant',
-          text: "Hello, how can I help you today?"
+      }
+      // Sho assistant message
+      function appendAssistantMessage(text) {
+        const $assistantMessageBox = $("<div>", {
+          class: "message-box assistant",
         });
-        $assistantMessageBox.append($assistantMessageElement);
+        $assistantMessageBox.append(
+          $("<div>", {
+            class: "message assistant",
+            text: text,
+          })
+        );
         $messagesContainer.append($assistantMessageBox);
       }
     });
@@ -893,11 +948,9 @@ $(document).ready(async function () {
   };
 });
 
-async function sendMessage() {
-
-}
-  const DEFAULT_SOURCE =
-    "\
+async function sendMessage() {}
+const DEFAULT_SOURCE =
+  "\
 #include <algorithm>\n\
 #include <cstdint>\n\
 #include <iostream>\n\
