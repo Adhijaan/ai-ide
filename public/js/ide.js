@@ -633,6 +633,8 @@ $(document).ready(async function () {
     });
 
     layout.registerComponent("chat", function (container, state) {
+      // const markedInstance = window.marked;
+      // const domPurifyInstance = window.DOMPurify;
       chatEditor = container.getElement();
       const chatStyles = `
         <style>
@@ -871,12 +873,11 @@ $(document).ready(async function () {
         const $assistantMessageBox = $("<div>", {
           class: "message-box assistant",
         });
-        $assistantMessageBox.append(
-          $("<div>", {
-            class: "message assistant",
-            text: text,
-          })
-        );
+        const $assistantMessage = $("<div>", {
+          class: "message assistant",
+        });
+        $assistantMessage.html(DOMPurify.sanitize(marked.parse(text)));
+        $assistantMessageBox.append($assistantMessage);
         $messagesContainer.append($assistantMessageBox);
       }
     });
