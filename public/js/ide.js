@@ -840,11 +840,20 @@ $(document).ready(async function () {
 
         $messagesContainer.append($loadingIndicator);
 
+        const codeContext = {
+          source_code: sourceEditor.getValue(),
+          language: $selectLanguage.val(),
+          stdin: stdinEditor.getValue(),
+          stdout: stdoutEditor.getValue(),
+          compiler_options: $compilerOptions.val(),
+          command_line_arguments: $commandLineArguments.val(),
+        };
+
         $.ajax({
           url: "/api/chat",
           method: "POST",
           contentType: "application/json",
-          data: JSON.stringify({ message: message, model: model }),
+          data: JSON.stringify({ message: message, model: model, code_context: codeContext }),
           dataType: "json",
           success: function (response) {
             $loadingIndicator.remove();
@@ -857,7 +866,7 @@ $(document).ready(async function () {
           },
         });
       }
-      // Sho assistant message
+      // Show assistant message
       function appendAssistantMessage(text) {
         const $assistantMessageBox = $("<div>", {
           class: "message-box assistant",
